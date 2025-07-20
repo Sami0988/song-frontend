@@ -1,8 +1,14 @@
 // src/App.js
 import React from 'react';
+import SongList from './components/SongList';
 
-function App() {
-  return <h1>Hello World</h1>;
-}
+const App = () => {
+  return (
+    <div>
+      <h1>🎶 Ethiopian Songs</h1>
+      <SongList />
+    </div>
+  );
+};
 
 export default App;
