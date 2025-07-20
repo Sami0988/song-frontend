@@ -11,10 +11,17 @@ const songsSlice = createSlice({
   },
   reducers: {
     fetchSongsRequest: () => {}, // Triggered by component
+    addSongRequest: (state, action) => {}, // Triggered by component
     setSongs: (state, action) => {
       state.loading = false;
       state.data = action.payload.data;
       state.total = action.payload.total;
+      state.error = null;
+    },
+    addSongSuccess: (state, action) => {
+      state.loading = false;
+      state.data = [action.payload, ...state.data];
+      state.total += 1;
       state.error = null;
     },
     setSongsLoading: (state, action) => {
@@ -27,6 +34,13 @@ const songsSlice = createSlice({
   }
 });
 
+export const { 
+  fetchSongsRequest, 
+  addSongRequest,
+  setSongs, 
+  addSongSuccess,
+  setSongsLoading, 
+  setSongsError 
+} = songsSlice.actions;
 
-export const { fetchSongsRequest, setSongs, setSongsLoading, setSongsError } = songsSlice.actions;
 export default songsSlice.reducer;
