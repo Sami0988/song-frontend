@@ -1,12 +1,18 @@
 // src/App.js
 import React from 'react';
 import SongList from './components/SongList';
+import Hero from './components/Hero';
+import Footer from './components/Footer';
+
 
 const App = () => {
   return (
     <div>
-      <h1>🎶 Ethiopian Songs</h1>
+       <Hero />
+    
       <SongList />
+
+      <Footer/>
     </div>
   );
 };

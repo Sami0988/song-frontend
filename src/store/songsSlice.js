@@ -1,10 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { fetchSongs } from '../api/songsApi';
-
-export const getSongs = createAsyncThunk('songs/getSongs', async (page = 1) => {
-  const data = await fetchSongs(page);
-  return data;
-});
+// src/store/songsSlice.js
+import { createSlice } from '@reduxjs/toolkit';
 
 const songsSlice = createSlice({
   name: 'songs',
@@ -14,22 +9,24 @@ const songsSlice = createSlice({
     loading: false,
     error: null
   },
-  reducers: {},
-  extraReducers: builder => {
-    builder
-      .addCase(getSongs.pending, state => {
-        state.loading = true;
-      })
-      .addCase(getSongs.fulfilled, (state, action) => {
-        state.loading = false;
-        state.data = action.payload.data;
-        state.total = action.payload.total;
-      })
-      .addCase(getSongs.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      });
+  reducers: {
+    fetchSongsRequest: () => {}, // Triggered by component
+    setSongs: (state, action) => {
+      state.loading = false;
+      state.data = action.payload.data;
+      state.total = action.payload.total;
+      state.error = null;
+    },
+    setSongsLoading: (state, action) => {
+      state.loading = action.payload;
+    },
+    setSongsError: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    }
   }
 });
 
+
+export const { fetchSongsRequest, setSongs, setSongsLoading, setSongsError } = songsSlice.actions;
 export default songsSlice.reducer;
