@@ -866,24 +866,232 @@ body {
   box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
 }
 
-.secondary-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+/* Edit & Delete Buttons */
+.edit-button,
+.delete-button {
+  padding: 8px 12px;
+  border-radius: 20px;
   border: none;
-  padding: 12px 25px;
-  border-radius: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.edit-button {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #3a7bc8;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
+}
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Changed from center to flex-start */
+  z-index: 1000;
+  padding: 40px 20px; /* Added padding */
+  overflow-y: auto; /* Enable scrolling for the modal background */
+}
+
+.edit-form {
+  width: 90%;
+  max-width: 800px; /* Increased from 500px */
+  padding: 30px;
+  max-height: 90vh; /* Limit height */
+  overflow-y: auto; /* Enable scrolling for the form */
+  margin: auto; /* Center vertically */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #1db954 rgba(255, 255, 255, 0.1);
+}
+
+.edit-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.edit-form::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.edit-form::-webkit-scrollbar-thumb {
+  background-color: #1db954;
+  border-radius: 4px;
+}
+
+/* Rest of your existing styles... */
+.form-section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px; /* Slightly larger radius */
+  cursor: pointer;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px; /* Increased gap */
+}
+
+.current-cover {
+  width: 50px; /* Reduced width */
+  height: 50px; /* Reduced height */
+  object-fit: cover; /* Ensures image keeps aspect ratio */
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Optional subtle border */
+  cursor: pointer;
+}
+
+/* Adjusted file upload group to match smaller image */
+.file-upload-group {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  backdrop-filter: blur(5px);
+  margin-top: 8px; /* Reduced top margin */
 }
 
-.secondary-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+/* Keep all other existing styles the same */
+.file-upload-label {
+  padding: 6px 12px; /* Slightly smaller padding */
+  font-size: 0.85rem;
+}
+
+.remove-file {
+  font-size: 0.9rem;
+  padding: 4px;
+}
+/* Enhanced track list */
+.track-edit-list {
+  max-height: 400px; /* Increased height */
+  padding-right: 10px; /* Prevent scrollbar overlap */
+  cursor: pointer;
+}
+
+.track-edit-item {
+  padding: 12px 15px;
+  margin-bottom: 10px;
+}
+
+/* Larger inputs */
+.form-group input,
+.form-group textarea,
+.track-title-input {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+/* More prominent buttons */
+.form-actions {
+  margin-top: 30px;
+}
+
+.cancel-button,
+.save-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: #ccc;
+}
+
+.save-button:hover {
+  background: #1ed760;
+}
+
+.delete-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* Higher than edit modal */
+}
+
+.delete-confirm-content {
+  width: 90%;
+  max-width: 400px;
+  padding: 25px;
+  text-align: center;
+}
+
+.delete-confirm-content h3 {
+  color: #ff4d4d;
+  margin-bottom: 15px;
+}
+
+.delete-confirm-content p {
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.delete-confirm-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.delete-button {
+  background: #ff4d4d;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.delete-button:hover {
+  background: #e60000;
+}
+
+.cancel-button {
+  background: #535353;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-button:hover {
+  background: #6d6d6d;
+}
+/* Adjust spacing in music-actions */
+.music-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
 }
 
 /* Track List - Enhanced */
@@ -1031,16 +1239,6 @@ body {
   animation-delay: -0.3s;
 }
 
-@keyframes equalize {
-  0%,
-  100% {
-    height: 10px;
-  }
-  50% {
-    height: 20px;
-  }
-}
-
 /* Track list current playing indicator */
 .track-item.currently-playing {
   background: rgba(255, 255, 255, 0.1);
@@ -1132,6 +1330,7 @@ body {
   .music-player-controls {
     width: 100%;
     margin: 15px 0;
+    max-width: 800px;
   }
 
   .time-display {
@@ -1142,32 +1341,59 @@ body {
     font-size: 14px;
     color: #b3b3b3;
   }
-  
+
+  .progress-wrapper {
+    width: 100%; /* Makes sure it fills its container */
+    height: 16px; /* Increased height for better visibility */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  /* The actual progress bar */
   .progress-bar {
-    width: 100%;
-    height: 4px;
+    width: 100%; /* Takes full width of its container */
+    height: 4px; /* Thin line (adjust if needed) */
     background: #535353;
     border-radius: 2px;
     -webkit-appearance: none;
+    outline: none;
   }
-  
+
+  /* Webkit (Chrome, Safari, Edge) thumb */
   .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
+    width: 12px; /* Smaller thumb (adjust if needed) */
+    height: 12px;
+    border-radius: 50%;
+    background: #1db954;
+    cursor: pointer;
+    margin-top: -4px; /* Centers thumb vertically */
+  }
+
+  /* Firefox thumb */
+  .progress-bar::-moz-range-thumb {
     width: 12px;
     height: 12px;
     border-radius: 50%;
     background: #1db954;
     cursor: pointer;
+    border: none;
   }
 
-  .progress-bar::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
+  /* Optional: Filled progress track (Webkit) */
+  .progress-bar::-webkit-slider-runnable-track {
+    background: #535353;
+    height: 4px;
+    border-radius: 2px;
   }
 
+  /* Optional: Filled progress track (Firefox) */
+  .progress-bar::-moz-range-progress {
+    background: #1db954;
+    height: 4px;
+    border-radius: 2px;
+  }
   .music-actions {
     flex-direction: column;
   }

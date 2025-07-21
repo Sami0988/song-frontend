@@ -6,17 +6,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlay,
   FaPause,
-  FaHeart,
+  FaSpinner,
   FaTimes,
   FaMusic,
   FaSearch,
   FaPlus,
   FaChevronLeft,
   FaChevronRight,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 import { uploadToCloudinary } from "../utils/cloudinary";
-import { createSong, fetchSongs } from "../api/songsApi";
+import {
+  createSong,
+  deleteSong,
+  fetchSongs,
+  updateSong,
+} from "../api/songsApi";
 import Loader from "../utils/Loader";
+import { toast } from "react-toastify";
 
 const SongList = () => {
   const dispatch = useDispatch();
@@ -39,6 +47,13 @@ const SongList = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTrackId, setCurrentTrackId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    id: null,
+    itemName: "",
+  });
 
   const [newSong, setNewSong] = useState({
     title: "",
@@ -89,11 +104,11 @@ const SongList = () => {
   const formatTime = (seconds) => {
     // Handle undefined/null/NaN cases
     if (isNaN(seconds)) return "0:00";
-    
+
     const sec = Math.floor(Number(seconds));
     const mins = Math.floor(sec / 60);
     const remainingSecs = sec % 60;
-    
+
     return `${mins}:${remainingSecs < 10 ? "0" : ""}${remainingSecs}`;
   };
 
@@ -133,9 +148,20 @@ const SongList = () => {
   };
 
   const handleSeek = (e) => {
-    const seekTime = (e.target.value / 100) * duration;
-    audioRef.current.currentTime = seekTime;
-    setCurrentTime(seekTime);
+    const seekPercent = e.target.value;
+    const seekTime = (seekPercent / 100) * duration;
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = seekTime;
+      setCurrentTime(seekTime);
+
+      // Ensure audio continues playing after seeking
+      if (isPlaying) {
+        audioRef.current
+          .play()
+          .catch((err) => console.error("Playback failed after seek:", err));
+      }
+    }
   };
 
   useEffect(() => {
@@ -241,13 +267,14 @@ const SongList = () => {
     e.preventDefault();
     setUploadError(null);
     setIsUploading(true);
-
+  
     try {
       if (!newSong.title || !newSong.artist) {
         throw new Error("Title and artist are required");
       }
-
+  
       let imageUrl = newSong.imageUrl || "";
+  
       if (newSong.imageFile) {
         if (!newSong.imageFile.type.startsWith("image/")) {
           throw new Error("Cover must be an image file (JPEG, PNG, etc.)");
@@ -255,7 +282,7 @@ const SongList = () => {
         const imageResult = await uploadToCloudinary(newSong.imageFile);
         imageUrl = imageResult.url;
       }
-
+  
       if (newSong.type === "single" && newSong.audioFile) {
         if (!newSong.audioFile.type.startsWith("audio/")) {
           throw new Error("Please upload a valid audio file");
@@ -264,13 +291,10 @@ const SongList = () => {
         newSong.audioUrl = audioResult.url;
         newSong.duration = Math.round(audioResult.duration || 0);
       }
-
+  
       if (newSong.type === "album" && newSong.tracks.length > 0) {
         const audioUploadPromises = newSong.tracks.map(async (track) => {
-          if (track.audioFile) {
-            if (!track.audioFile.type.startsWith("audio/")) {
-              throw new Error(`Invalid audio file in track: ${track.title}`);
-            }
+          if (track.audioFile && track.audioFile.type.startsWith("audio/")) {
             const audioResult = await uploadToCloudinary(track.audioFile);
             return {
               ...track,
@@ -280,10 +304,9 @@ const SongList = () => {
           }
           return track;
         });
-
         newSong.tracks = await Promise.all(audioUploadPromises);
       }
-
+  
       const payload = {
         title: newSong.title,
         artist: newSong.artist,
@@ -297,28 +320,229 @@ const SongList = () => {
           duration: newSong.duration,
         }),
         ...(newSong.type === "album" && {
-          tracks: newSong.tracks.map((track) => ({
-            title: track.title,
+          tracks: newSong.tracks.map(({ title, audioUrl, duration }) => ({
+            title,
+            audioUrl,
+            duration,
+          })),
+        }),
+      };
+  
+      await createSong(payload);
+      setShowAddForm(false);
+      resetForm();
+      dispatch(fetchSongsRequest({ page: currentPage, limit: itemsPerPage }));
+      toast.success("Song uploaded successfully!");
+    } catch (error) {
+      const message =
+        error.response?.data?.message || error.message || "Upload failed.";
+      setUploadError(message);
+      toast.error(message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+
+  const handleEdit = (item) => {
+    // Reset any previous errors
+    setUploadError(null);
+
+    setEditFormData({
+      _id: item._id,
+      title: item.title,
+      artist: item.artist,
+      album: item.album || "",
+      year: item.year || "",
+      description: item.description || "",
+      type: item.type,
+      imageUrl: item.imageUrl || "",
+      ...(item.type === "single" && {
+        audioUrl: item.audioUrl,
+        duration: item.duration,
+      }),
+      ...(item.type === "album" && {
+        tracks:
+          item.tracks?.map((track) => ({
+            ...track,
+            audioFile: null, // Will hold new audio files if replaced
+          })) || [],
+      }),
+      imageFile: null,
+      audioFile: null,
+    });
+
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      // Validate required fields
+      if (!editFormData.title?.trim()) {
+        throw new Error("Title is required");
+      }
+      if (!editFormData.artist?.trim()) {
+        throw new Error("Artist is required");
+      }
+
+      // Upload new image if provided
+      let imageUrl = editFormData.imageUrl;
+      if (editFormData.imageFile) {
+        if (!editFormData.imageFile.type.startsWith("image/")) {
+          throw new Error("Cover must be an image file (JPEG, PNG, etc.)");
+        }
+        if (editFormData.imageFile.size > 5 * 1024 * 1024) {
+          throw new Error("Image file size must be less than 5MB");
+        }
+        const imageResult = await uploadToCloudinary(editFormData.imageFile);
+        imageUrl = imageResult.url;
+      }
+
+      // Handle single track updates
+      let audioUrl = editFormData.audioUrl;
+      let duration = editFormData.duration;
+      if (editFormData.type === "single" && editFormData.audioFile) {
+        if (!editFormData.audioFile.type.startsWith("audio/")) {
+          throw new Error("Please upload a valid audio file");
+        }
+        if (editFormData.audioFile.size > 20 * 1024 * 1024) {
+          throw new Error("Audio file size must be less than 20MB");
+        }
+        const audioResult = await uploadToCloudinary(editFormData.audioFile);
+        audioUrl = audioResult.url;
+        duration = Math.round(audioResult.duration || 0);
+      }
+
+      // Handle album track updates
+      let updatedTracks = editFormData.tracks;
+      if (editFormData.type === "album" && editFormData.tracks?.length > 0) {
+        updatedTracks = await Promise.all(
+          editFormData.tracks.map(async (track) => {
+            if (!track.title?.trim()) {
+              throw new Error(
+                `Track ${track._id || track.tempId} is missing a title`
+              );
+            }
+            if (track.audioFile) {
+              if (!track.audioFile.type.startsWith("audio/")) {
+                throw new Error(`Invalid audio file in track: ${track.title}`);
+              }
+              if (track.audioFile.size > 20 * 1024 * 1024) {
+                throw new Error(
+                  `Audio file for "${track.title}" is too large (max 20MB)`
+                );
+              }
+              const audioResult = await uploadToCloudinary(track.audioFile);
+              return {
+                ...track,
+                audioUrl: audioResult.url,
+                duration: Math.round(audioResult.duration || 0),
+              };
+            }
+            return track;
+          })
+        );
+      }
+
+      // Prepare update payload
+      const payload = {
+        title: editFormData.title.trim(),
+        artist: editFormData.artist.trim(),
+        type: editFormData.type,
+        ...(editFormData.album && { album: editFormData.album.trim() }),
+        ...(editFormData.year && { year: Number(editFormData.year) }),
+        ...(editFormData.description && {
+          description: editFormData.description.trim(),
+        }),
+        ...(imageUrl && { imageUrl }),
+        ...(editFormData.type === "single" && {
+          audioUrl,
+          duration,
+        }),
+        ...(editFormData.type === "album" && {
+          tracks: updatedTracks.map((track) => ({
+            _id: track._id,
+            title: track.title.trim(),
             audioUrl: track.audioUrl,
             duration: track.duration,
           })),
         }),
       };
 
-      await createSong(payload);
-      setShowAddForm(false);
-      resetForm();
+      // Call API to update
+      await updateSong(editFormData._id, payload);
+
+      // Refresh data
       dispatch(fetchSongsRequest({ page: currentPage, limit: itemsPerPage }));
+
+      // Update player state if needed
+      if (currentTrackId === editFormData._id) {
+        setSelectedItem({ ...editFormData, ...payload });
+      } else if (
+        editFormData.type === "album" &&
+        editFormData.tracks.some((t) => t._id === currentTrackId)
+      ) {
+        const updatedAlbum = { ...editFormData, ...payload };
+        setSelectedItem(updatedAlbum);
+      }
+
+      // Close edit modal
+      setIsEditing(false);
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("Edit error:", error);
       setUploadError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to upload song. Please try again."
+          "Failed to update. Please try again."
       );
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleDeleteInit = (id, itemName) => {
+    setDeleteConfirm({
+      show: true,
+      id,
+      itemName,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { id, itemName } = deleteConfirm;
+    try {
+      // Show loading state
+      const toastId = toast.loading(`Deleting ${itemName}...`);
+
+      await deleteSong(id);
+
+      // Close the detail view and confirmation modal
+      setSelectedItem(null);
+      setDeleteConfirm({ show: false, id: null, itemName: "" });
+
+      dispatch(fetchSongsRequest({ page: currentPage, limit: itemsPerPage }));
+
+      // Update toast to show success
+      toast.update(toastId, {
+        render: `${itemName} deleted successfully`,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(
+        `Failed to delete: ${error.response?.data?.message || error.message}`
+      );
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ show: false, id: null, itemName: "" });
   };
 
   const filteredItems = songs.filter((item) => {
@@ -737,7 +961,16 @@ const SongList = () => {
               <div className="music-detail-view glass-card">
                 <button
                   className="back-button"
-                  onClick={() => setSelectedItem(null)}
+                  onClick={() => {
+                    if (audioRef.current) {
+                      audioRef.current.pause();
+                      audioRef.current.currentTime = 0;
+                    }
+                    setCurrentTime(0);
+                    setIsPlaying(false);
+                    setSelectedItem(null);
+                    setCurrentTrackId(null);
+                  }}
                 >
                   <FaTimes />
                 </button>
@@ -799,8 +1032,20 @@ const SongList = () => {
                           <FaPlay /> Play Album
                         </button>
                       )}
-                      <button className="secondary-button">
-                        <FaHeart /> Like
+
+                      <button
+                        className="edit-button"
+                        onClick={() => handleEdit(selectedItem)}
+                      >
+                        <FaEdit /> Edit
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() =>
+                          handleDeleteInit(selectedItem._id, selectedItem.title)
+                        }
+                      >
+                        <FaTrash /> Delete
                       </button>
                     </div>
                   </div>
@@ -863,6 +1108,309 @@ const SongList = () => {
           )}
         </AnimatePresence>
       </>
+      {isEditing && (
+        <motion.div
+          className="edit-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="edit-form glass-card">
+            <h3>Edit {editFormData.type === "album" ? "Album" : "Track"}</h3>
+
+            <form onSubmit={handleSaveEdit}>
+              {/* Basic Info */}
+              <div className="form-section">
+                <h4>Basic Information</h4>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Title*</label>
+                    <input
+                      type="text"
+                      value={editFormData.title}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          title: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Artist*</label>
+                    <input
+                      type="text"
+                      value={editFormData.artist}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          artist: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                {editFormData.type === "single" && (
+                  <div className="form-group">
+                    <label>Album (optional)</label>
+                    <input
+                      type="text"
+                      value={editFormData.album}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          album: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Year</label>
+                    <input
+                      type="text"
+                      value={editFormData.year}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          year: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <input
+                      type="text"
+                      value={editFormData.description}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Cover Image Upload */}
+              <div className="form-section">
+                <h4>Cover Image</h4>
+                <div className="file-upload-group">
+                  {editFormData.imageUrl && (
+                    <img
+                      src={editFormData.imageUrl}
+                      alt="Current cover"
+                      className="current-cover"
+                    />
+                  )}
+                  <label className="file-upload-label">
+                    {editFormData.imageFile
+                      ? editFormData.imageFile.name
+                      : "Change Image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          imageFile: e.target.files[0],
+                        })
+                      }
+                      hidden
+                    />
+                  </label>
+                  {editFormData.imageFile && (
+                    <button
+                      type="button"
+                      className="remove-file"
+                      onClick={() =>
+                        setEditFormData({
+                          ...editFormData,
+                          imageFile: null,
+                        })
+                      }
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Audio File (for single track) */}
+              {editFormData.type === "single" && (
+                <div className="form-section">
+                  <h4>Audio File</h4>
+                  <div className="file-upload-group">
+                    <p className="current-audio">
+                      Current:{" "}
+                      {editFormData.audioUrl?.split("/").pop() || "No file"}
+                      {editFormData.duration &&
+                        ` (${formatTime(editFormData.duration)})`}
+                    </p>
+                    <label className="file-upload-label">
+                      {editFormData.audioFile
+                        ? editFormData.audioFile.name
+                        : "Replace Audio"}
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            audioFile: e.target.files[0],
+                          })
+                        }
+                        hidden
+                      />
+                    </label>
+                    {editFormData.audioFile && (
+                      <button
+                        type="button"
+                        className="remove-file"
+                        onClick={() =>
+                          setEditFormData({
+                            ...editFormData,
+                            audioFile: null,
+                          })
+                        }
+                      >
+                        <FaTimes />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Tracks (for album) */}
+              {editFormData.type === "album" && (
+                <div className="form-section">
+                  <h4>Tracks</h4>
+                  <div className="track-edit-list">
+                    {editFormData.tracks.map((track, index) => (
+                      <div key={track._id || index} className="track-edit-item">
+                        <div className="track-info">
+                          <span className="track-number">{index + 1}.</span>
+                          <input
+                            type="text"
+                            value={track.title}
+                            onChange={(e) => {
+                              const updatedTracks = [...editFormData.tracks];
+                              updatedTracks[index].title = e.target.value;
+                              setEditFormData({
+                                ...editFormData,
+                                tracks: updatedTracks,
+                              });
+                            }}
+                            className="track-title-input"
+                          />
+                        </div>
+                        <div className="track-audio">
+                          <p className="current-audio">
+                            {track.audioUrl?.split("/").pop() || "No file"}
+                            {track.duration &&
+                              ` (${formatTime(track.duration)})`}
+                          </p>
+                          <label className="file-upload-label small">
+                            {track.audioFile ? track.audioFile.name : "Replace"}
+                            <input
+                              type="file"
+                              accept="audio/*"
+                              onChange={(e) => {
+                                const updatedTracks = [...editFormData.tracks];
+                                updatedTracks[index].audioFile =
+                                  e.target.files[0];
+                                setEditFormData({
+                                  ...editFormData,
+                                  tracks: updatedTracks,
+                                });
+                              }}
+                              hidden
+                            />
+                          </label>
+                          {track.audioFile && (
+                            <button
+                              type="button"
+                              className="remove-file small"
+                              onClick={() => {
+                                const updatedTracks = [...editFormData.tracks];
+                                updatedTracks[index].audioFile = null;
+                                setEditFormData({
+                                  ...editFormData,
+                                  tracks: updatedTracks,
+                                });
+                              }}
+                            >
+                              <FaTimes />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setIsEditing(false)}
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="save-button"
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <FaSpinner className="spinner" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
+      )}
+
+      {deleteConfirm.show && (
+        <motion.div
+          className="delete-confirm-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="delete-confirm-content glass-card">
+            <h3>Confirm Deletion</h3>
+            <p>
+              Are you sure you want to delete "{deleteConfirm.itemName}"? This
+              action cannot be undone.
+            </p>
+
+            <div className="delete-confirm-buttons">
+              <button className="cancel-button" onClick={handleDeleteCancel}>
+                Cancel
+              </button>
+              <button className="delete-button" onClick={handleDeleteConfirm}>
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
