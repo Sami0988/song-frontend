@@ -25,6 +25,7 @@ This is a modern web application for managing, uploading, and searching Ethiopia
 ## 🤖 AI Integration
 
 > Redux-Saga setup and integration was guided with help from **Google AI**.
+> Component test set up and some configuration done by **Google Ai**
 
 ## 🗂️ Folder Structure (Frontend)
 project-root/
