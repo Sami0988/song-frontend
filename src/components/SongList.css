@@ -1,6 +1,5 @@
 /* SongList.css - Enhanced Version with Image Upload and Cool Effects */
 
-/* Base Styles */
 :root {
   --primary-color: #6c5ce7;
   --secondary-color: #a29bfe;
@@ -907,19 +906,19 @@ body {
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Changed from center to flex-start */
+  align-items: flex-start; 
   z-index: 1000;
-  padding: 40px 20px; /* Added padding */
-  overflow-y: auto; /* Enable scrolling for the modal background */
+  padding: 40px 20px; 
+  overflow-y: auto; 
 }
 
 .edit-form {
   width: 90%;
-  max-width: 800px; /* Increased from 500px */
+  max-width: 800px; 
   padding: 30px;
-  max-height: 90vh; /* Limit height */
-  overflow-y: auto; /* Enable scrolling for the form */
-  margin: auto; /* Center vertically */
+  max-height: 90vh; 
+  overflow-y: auto; 
+  margin: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 
   /* Custom scrollbar */
@@ -946,7 +945,7 @@ body {
   margin-bottom: 25px;
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px; /* Slightly larger radius */
+  border-radius: 10px; 
   cursor: pointer;
 }
 
@@ -956,11 +955,11 @@ body {
 }
 
 .current-cover {
-  width: 50px; /* Reduced width */
-  height: 50px; /* Reduced height */
-  object-fit: cover; /* Ensures image keeps aspect ratio */
+  width: 50px;
+  height: 50px; 
+  object-fit: cover; 
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Optional subtle border */
+  border: 1px solid rgba(255, 255, 255, 0.1); 
   cursor: pointer;
 }
 
@@ -969,12 +968,12 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 8px; /* Reduced top margin */
+  margin-top: 8px; 
 }
 
 /* Keep all other existing styles the same */
 .file-upload-label {
-  padding: 6px 12px; /* Slightly smaller padding */
+  padding: 6px 12px; 
   font-size: 0.85rem;
 }
 
@@ -984,8 +983,8 @@ body {
 }
 /* Enhanced track list */
 .track-edit-list {
-  max-height: 400px; /* Increased height */
-  padding-right: 10px; /* Prevent scrollbar overlap */
+  max-height: 400px; 
+  padding-right: 10px; 
   cursor: pointer;
 }
 
@@ -1033,7 +1032,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1001; /* Higher than edit modal */
+  z-index: 1001; 
 }
 
 .delete-confirm-content {
@@ -1094,7 +1093,7 @@ body {
   margin-top: 15px;
 }
 
-/* Track List - Enhanced */
+/* Track List */
 .track-list {
   margin-top: 40px;
 }
@@ -1343,8 +1342,8 @@ body {
   }
 
   .progress-wrapper {
-    width: 100%; /* Makes sure it fills its container */
-    height: 16px; /* Increased height for better visibility */
+    width: 100%; 
+    height: 16px; 
     display: flex;
     align-items: center;
     cursor: pointer;
@@ -1352,8 +1351,8 @@ body {
 
   /* The actual progress bar */
   .progress-bar {
-    width: 100%; /* Takes full width of its container */
-    height: 4px; /* Thin line (adjust if needed) */
+    width: 100%;
+    height: 4px; 
     background: #535353;
     border-radius: 2px;
     -webkit-appearance: none;
@@ -1363,12 +1362,12 @@ body {
   /* Webkit (Chrome, Safari, Edge) thumb */
   .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; /* Smaller thumb (adjust if needed) */
+    width: 12px; 
     height: 12px;
     border-radius: 50%;
     background: #1db954;
     cursor: pointer;
-    margin-top: -4px; /* Centers thumb vertically */
+    margin-top: -4px; 
   }
 
   /* Firefox thumb */

@@ -25,7 +25,6 @@ const Hero = () => {
     };
   });
 
-  // Background pulse effect
   useEffect(() => {
     if (inView) {
       controls.start({
@@ -40,7 +39,7 @@ const Hero = () => {
     }
   }, [controls, inView]);
 
-  // Animation variants
+ 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

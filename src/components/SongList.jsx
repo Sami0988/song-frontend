@@ -87,7 +87,6 @@ const SongList = () => {
   // Fetch songs with pagination
   useEffect(() => {
     dispatch(fetchSongsRequest({ page: currentPage, limit: itemsPerPage }));
-    console.log(selectedItem);
   }, [dispatch, currentPage, itemsPerPage]);
 
   // Updates the currentTime state with the current playback time of the audio
@@ -391,7 +390,6 @@ const SongList = () => {
 
   // Handles clicking an item (song or album) to set it as the selected item
   const handleItemClick = (item) => {
-    console.log("Clicked item:", item);
     setSelectedItem(item);
   };
 

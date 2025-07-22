@@ -1,17 +1,17 @@
-// src/store/songsSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+
+import { createSlice } from "@reduxjs/toolkit";
 
 const songsSlice = createSlice({
-  name: 'songs',
+  name: "songs",
   initialState: {
     data: [],
     total: 0,
     loading: false,
-    error: null
+    error: null,
   },
   reducers: {
-    fetchSongsRequest: () => {}, // Triggered by component
-    addSongRequest: (state, action) => {}, // Triggered by component
+    fetchSongsRequest: () => {},
+    addSongRequest: (state, action) => {},
     setSongs: (state, action) => {
       state.loading = false;
       state.data = action.payload.data;
@@ -30,17 +30,17 @@ const songsSlice = createSlice({
     setSongsError: (state, action) => {
       state.loading = false;
       state.error = action.payload;
-    }
-  }
+    },
+  },
 });
 
-export const { 
-  fetchSongsRequest, 
+export const {
+  fetchSongsRequest,
   addSongRequest,
-  setSongs, 
+  setSongs,
   addSongSuccess,
-  setSongsLoading, 
-  setSongsError 
+  setSongsLoading,
+  setSongsError,
 } = songsSlice.actions;
 
 export default songsSlice.reducer;

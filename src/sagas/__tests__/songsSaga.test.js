@@ -1,10 +1,9 @@
-// src/sagas/__tests__/songsSaga.test.js
+
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { fetchSongs } from '../../api/songsApi';
 import * as songsSaga from '../songsSaga';
 import { setSongs, setSongsLoading, setSongsError } from '../../store/songsSlice';
 
-// Mock the API
 jest.mock('../../api/songsApi', () => ({
   fetchSongs: jest.fn(),
 }));
@@ -27,7 +26,7 @@ describe('songsSaga', () => {
       // Mock the API response and check that songs are set
       // Note: Changed to match the actual payload structure
       expect(generator.next(mockResponse).value)
-        .toEqual(put(setSongs(mockResponse))); // Changed from mockResponse.data to mockResponse
+        .toEqual(put(setSongs(mockResponse)));
 
       // Check that the saga completes
       expect(generator.next().done).toBe(true);

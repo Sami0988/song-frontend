@@ -14,7 +14,7 @@ describe('songsSlice reducer', () => {
 
   it('should handle fetchSongsRequest', () => {
     const nextState = songsReducer(initialState, fetchSongsRequest());
-    expect(nextState).toEqual(initialState); // fetchSongsRequest doesn't change state here
+    expect(nextState).toEqual(initialState);
   });
 
   it('should handle setSongs', () => {

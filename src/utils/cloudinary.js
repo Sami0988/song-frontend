@@ -2,14 +2,14 @@ import axios from 'axios';
 
 const cloudName = process.env.REACT_APP_CLOUD_NAME;
 const audioUploadPreset = process.env.REACT_APP_CLOUD_PRESET;
-const imageUploadPreset = 'strict_image_upload'; // Your new image preset
+const imageUploadPreset = 'strict_image_upload'; 
 
 // Validate config
 if (!cloudName || !audioUploadPreset) {
   throw new Error('Missing Cloudinary configuration. Please check your .env file.');
 }
 
-// Supported types with more specific validation
+
 const SUPPORTED_IMAGE_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg',
   'image/svg+xml', 'image/avif'
@@ -21,7 +21,7 @@ const SUPPORTED_AUDIO_TYPES = [
   'audio/x-wav', 'audio/flac', 'audio/x-flac'
 ];
 
-// Enhanced file validation with detailed logging
+
 const validateFile = (file) => {
   console.log('Validating file:', {
     name: file.name,
@@ -49,10 +49,10 @@ const validateFile = (file) => {
   return { isImage, isAudio };
 };
 
-// Enhanced upload function with proper unsigned upload handling
+
 export const uploadToCloudinary = async (file, onProgress = null) => {
   try {
-    // Detailed file info before upload
+  
     console.group('File Upload - Before Cloudinary Upload');
     console.log('File Details:', {
       name: file.name,
@@ -86,7 +86,7 @@ export const uploadToCloudinary = async (file, onProgress = null) => {
     // Validate file type
     const { isImage, isAudio } = validateFile(file);
     
-    // Set resource type and max size
+    
     const resourceType = isImage ? 'image' : 'video';
     const preset = isImage ? imageUploadPreset : audioUploadPreset;
     const maxSize = isImage ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
@@ -166,15 +166,15 @@ export const uploadToCloudinary = async (file, onProgress = null) => {
     let errorMessage = 'Upload failed';
     
     if (error.response) {
-      // The request was made and the server responded with a status code
+      
       errorMessage = error.response.data?.error?.message || 
                     error.response.data?.message || 
                     JSON.stringify(error.response.data);
     } else if (error.request) {
-      // The request was made but no response was received
+    
       errorMessage = 'No response received from Cloudinary';
     } else {
-      // Something happened in setting up the request
+     
       errorMessage = error.message;
     }
 

@@ -1,6 +1,5 @@
 /* Footer.css */
 :root {
-  /* ... your existing variables ... */
   --footer-bg: rgba(30, 30, 30, 0.95);
   --footer-text: rgba(255, 255, 255, 0.8);
   --footer-link-hover: #e84118;
