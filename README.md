@@ -34,12 +34,12 @@ project-root/
 │
 ├── src/
 │   ├── api/
-│   │   ├── songsApi.js              
+│   │   ├── songsApi.js
 │   │   └── test.jsx/
-│   │       └── songApi.test.js      
+│   │       └── songApi.test.js
 │   │
 │   ├── app/
-│   │   └── store.js                 
+│   │   └── store.js
 │   │
 │   ├── components/
 │   │   ├── Header.jsx
@@ -48,39 +48,47 @@ project-root/
 │   │   ├── Footer.css
 │   │   ├── SongList.jsx
 │   │   ├── SongList.css
+│   │   ├── music/
+│   │   │   └── MusicGrid.jsx
+│   │   ├── popup/
+│   │   │   ├── AddSongForm.jsx
+│   │   │   ├── EditingForm.jsx
+│   │   │   ├── DeleteConfirmation.jsx
+│   │   │   └── SongDetailView.jsx
 │   │   └── __tests__/
-│   │       ├── SongList.test.js     
-│   │       └── Footer.test.js       
+│   │       ├── SongList.test.js
+│   │       └── Footer.test.js
 │   │
 │   ├── sagas/
-│   │   ├── songsSaga.js           
+│   │   ├── songsSaga.js
 │   │   └── test.jsx/
-│   │       └── songsSaga.test.js    
+│   │       └── songsSaga.test.js
 │   │
 │   ├── store/
-│   │   ├── songSlice.js              
+│   │   ├── songSlice.js
 │   │   └── test.jsx/
-│   │       └── songSlice.test.js   
+│   │       └── songSlice.test.js
 │   │
 │   ├── utils/
-│   │   ├── cloudinary.js            
-│   │   ├── Loader.js                
+│   │   ├── cloudinary.js
+│   │   ├── Loader.js
 │   │   └── Loader.css
 │   │
-│   ├── App.jsx                       
-│   └── index.js                      
+│   ├── App.jsx
+│   └── index.js
 │
 ├── mock/
-│   └── cloudinary.js               
+│   └── cloudinary.js
 │
-├── .env.deployment               
-├── .env.test                         
+├── .env.deployment
+├── .env.test
 ├── .gitignore
 ├── .babelrc
 ├── jest.config.js
 ├── jest.setup.js
 ├── webpackconfig.js
 ├── README.md
+
 
 
 ---
@@ -93,9 +101,14 @@ cd song-frontend
 npm install
 
 
-## Enviromental variable
-REACT_APP_CLOUD_NAME=dggq5nzt7
-REACT_APP_CLOUD_PRESET=songcloud
+# Create a .env file based on the environment variables below:
+# REACT_APP_CLOUD_NAME=dggq5nzt7
+# REACT_APP_CLOUD_PRESET=songcloud
+
+npm start
 
 
 
+#Code Optimization
+Lazy Loading & Suspense
+memo
